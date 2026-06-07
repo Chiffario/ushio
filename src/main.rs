@@ -18,7 +18,7 @@ use time::OffsetDateTime;
 use tokio_tungstenite::tungstenite::{Error, protocol::Message};
 
 use crate::{
-    database::{Database, models::DatabaseScore},
+    database::{Database, impls::LatestScore, models::DatabaseScore},
     state::{AppState, SharedState},
 };
 
@@ -33,6 +33,11 @@ async fn main() -> Result<()> {
     let _ = dotenv();
 
     let url = env::var("SCORES_SOCKET_URL")?;
+    let state = AppState::new_shared().await?;
+    let lock = state.lock().await;
+    lock.database().migrate().await?;
+    let LatestScore { id, ended_at } = lock.database().get_last_inserted_score().await?;
+    drop(lock);
 
     let (stream, _) = tokio_tungstenite::connect_async(url)
         .await
@@ -40,10 +45,9 @@ async fn main() -> Result<()> {
 
     let (mut write, mut read) = stream.split();
 
-    write.send(Message::from("connect")).await.unwrap();
+    tracing::info!("Reconnecting from id = {id}");
+    write.send(Message::from(format!("{id}"))).await.unwrap();
 
-    let state = AppState::new_shared().await?;
-    state.lock().await.database().migrate().await?;
     let clone = Arc::clone(&state);
 
     let addr = match env::var("APP_ADDR") {

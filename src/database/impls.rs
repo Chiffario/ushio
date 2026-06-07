@@ -16,6 +16,11 @@ pub struct BucketedResponse {
     pub lazer: i64,
 }
 
+pub struct LatestScore {
+    pub ended_at: OffsetDateTime,
+    pub id: i64,
+}
+
 impl Database {
     /// Insert a score batch into the database
     pub async fn insert_score_batch(
@@ -88,6 +93,18 @@ impl Database {
         .fetch_one(&*self)
         .await
         .wrap_err("Failed to fetch score distribution");
+
+        result
+    }
+
+    pub async fn get_last_inserted_score(&self) -> Result<LatestScore> {
+        let result = query_as!(
+            LatestScore,
+            r#"SELECT id, ended_at FROM scores ORDER BY id DESC LIMIT 1"#
+        )
+        .fetch_one(&*self)
+        .await
+        .wrap_err("Failed to fetch last score");
 
         result
     }
