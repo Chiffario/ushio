@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                COUNT(*) FILTER (WHERE lazer = true)  AS \"lazer!\",\n                COUNT(*) FILTER (WHERE lazer = false) AS \"stable!\"\n            FROM scores\n            WHERE ended_at > $1 AND ended_at < $2\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "lazer!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "stable!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "10f54b8b09382530ac6dc92fcdf5cd9c91db205843f13c65ca4e88d074aca912"
+}
