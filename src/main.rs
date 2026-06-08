@@ -36,7 +36,7 @@ async fn main() -> Result<()> {
     let state = AppState::new_shared().await?;
     let lock = state.lock().await;
     lock.database().migrate().await?;
-    let LatestScore { id, ended_at } = lock.database().get_last_inserted_score().await?;
+    let data = lock.database().get_last_inserted_score().await;
     drop(lock);
 
     let (stream, _) = tokio_tungstenite::connect_async(url)
@@ -45,8 +45,16 @@ async fn main() -> Result<()> {
 
     let (mut write, mut read) = stream.split();
 
-    tracing::info!("Reconnecting from id = {id}");
-    write.send(Message::from(format!("{id}"))).await.unwrap();
+    match data {
+        Ok(LatestScore { ended_at, id }) => {
+            tracing::info!("Reconnecting from id = {id}");
+            write.send(Message::from(format!("{id}"))).await.unwrap()
+        }
+        Err(_) => {
+            tracing::info!("Connecting from a fresh database");
+            write.send(Message::from("connect")).await.unwrap()
+        }
+    }
 
     let clone = Arc::clone(&state);
 
