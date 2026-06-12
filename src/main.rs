@@ -46,7 +46,7 @@ async fn main() -> Result<()> {
     let (mut write, mut read) = stream.split();
 
     match data {
-        Ok(LatestScore { ended_at, id }) => {
+        Ok(LatestScore { id, .. }) => {
             tracing::info!("Reconnecting from id = {id}");
             write.send(Message::from(format!("{id}"))).await.unwrap()
         }

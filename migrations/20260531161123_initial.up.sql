@@ -22,7 +22,7 @@ CREATE TABLE scores (
 );
 
 CREATE INDEX idx_scores_agg_lookup
-ON scores (ruleset_id, build_id, ended_at DESC);
+ON scores (ruleset_id, lazer, ended_at DESC);
 
 CREATE INDEX idx_scores_user_lookup
 ON scores (user_id, ended_at DESC);

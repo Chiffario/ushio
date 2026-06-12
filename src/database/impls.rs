@@ -64,7 +64,7 @@ impl Database {
         }
 
         trans.commit().await?;
-        tracing::info!(parent: &span, "Committed an insertion");
+        tracing::info!(parent: &span, "Commit: inserted {batch_length} scores");
 
         counter!("ushio.scores_inserted_total").increment(batch_length as u64);
         histogram!("ushio.scores_inserted_latest").record(batch_length as f64);
